@@ -21,7 +21,7 @@ const tpl = `
 
 {{ .SourceCodeInfo.LeadingComments }}
 
-## Dependencies
+**Dependencies**
 
 {{ range .Imports }}
 - [{{ .Name }}]({{ .InputPath }})
@@ -32,18 +32,6 @@ const tpl = `
 {{- range .Fields -}}
 | {{ .Name }} | {{ .Type.ProtoType }} | {{ .SourceCodeInfo.TrailingComments }} |
 {{ end }}
-
-## Commentary
-
-{{ range .Fields }}
-
-### {{ .Name }}
-
-{{ .SourceCodeInfo.LeadingComments }}
-
-{{ end }}
-
-
 {{ end }}
 `
 type slateModule struct {
@@ -116,6 +104,7 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 			log.Fatal(err)
 		}
 
+		m.
 		m.AddCustomFile(indexFile, "---\n" + string(yamlStr) + "---\n", 0777)
 	}
 
