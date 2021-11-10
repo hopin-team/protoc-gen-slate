@@ -94,9 +94,13 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 		includesYaml := struct{
 			Includes []string
 			LanguageTabs []string `yaml:"language_tabs"`
+			Search bool
+			CodeClipboard bool `yaml:code_clipboard`
 		}{
 			Includes: includes,
 			LanguageTabs: []string{"protobuf"},
+			Search: true,
+			CodeClipboard: true,
 		}
 
 		yamlStr, err := yaml.Marshal(includesYaml)
