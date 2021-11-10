@@ -88,7 +88,7 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 	if hasIndexFile {
 		var includes []string
 
-		for path, _ := range files {
+		for path := range files {
 			includes = append(includes, strings.TrimSuffix(path, ".proto")+"_pb.md")
 		}
 
@@ -96,7 +96,7 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 			Includes      []string
 			LanguageTabs  []string `yaml:"language_tabs"`
 			Search        bool
-			CodeClipboard bool `yaml:code_clipboard`
+			CodeClipboard bool `yaml:"code_clipboard"`
 		}{
 			Includes:      includes,
 			LanguageTabs:  []string{"protobuf"},
