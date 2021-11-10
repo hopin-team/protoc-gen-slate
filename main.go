@@ -52,6 +52,7 @@ func (m *slateModule) InitContext(c pgs.BuildContext) {
 
 	funcs := map[string]interface{} {
 		"source": func(fp pgs.FilePath) string {
+			// todo: don't hard-code schemas path. Only needed because of how buf works
 			res, err := os.ReadFile("schemas/" + fp.String())
 			if err != nil {
 				log.Fatal(err)
