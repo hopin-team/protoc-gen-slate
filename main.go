@@ -17,6 +17,8 @@ const tpl = `
 {{ source .File.InputPath }} 
 ~~~
 
+{{ .SourceCodeInfo.LeadingDetachedComments }}
+
 {{ .SourceCodeInfo.LeadingComments }}
 
 ## Dependencies
