@@ -34,15 +34,16 @@ const tpl = `
 {{ end }}
 {{ end }}
 `
+
 type slateModule struct {
-  *pgs.ModuleBase
-  tpl *template.Template
+	*pgs.ModuleBase
+	tpl *template.Template
 }
 
 func (m *slateModule) InitContext(c pgs.BuildContext) {
 	m.ModuleBase.InitContext(c)
 
-	funcs := map[string]interface{} {
+	funcs := map[string]interface{}{
 		"source": func(fp pgs.FilePath) string {
 			// todo: don't hard-code schemas path. Only needed because of how buf works
 			res, err := os.ReadFile("schemas/" + fp.String())
@@ -64,7 +65,7 @@ func (m *slateModule) Generate(f pgs.File, hasIndexFile bool) {
 	var out string
 
 	if hasIndexFile {
-		out = f.InputPath().Dir().String() + "/_" + strings.TrimSuffix(f.InputPath().BaseName(), ".proto" ) + "_pb.md"
+		out = f.InputPath().Dir().String() + "/_" + strings.TrimSuffix(f.InputPath().BaseName(), ".proto") + "_pb.md"
 	} else {
 		out = strings.TrimSuffix(f.InputPath().String(), ".proto") + "_pb.md"
 	}
@@ -88,18 +89,18 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 		var includes []string
 
 		for path, _ := range files {
-			includes = append(includes, strings.TrimSuffix(path, ".proto") + "_pb.md")
+			includes = append(includes, strings.TrimSuffix(path, ".proto")+"_pb.md")
 		}
 
-		includesYaml := struct{
-			Includes []string
-			LanguageTabs []string `yaml:"language_tabs"`
-			Search bool
+		includesYaml := struct {
+			Includes      []string
+			LanguageTabs  []string `yaml:"language_tabs"`
+			Search        bool
 			CodeClipboard bool `yaml:code_clipboard`
 		}{
-			Includes: includes,
-			LanguageTabs: []string{"protobuf"},
-			Search: true,
+			Includes:      includes,
+			LanguageTabs:  []string{"protobuf"},
+			Search:        true,
 			CodeClipboard: true,
 		}
 
@@ -108,15 +109,14 @@ func (m *slateModule) Execute(files map[string]pgs.File, _ map[string]pgs.Packag
 			log.Fatal(err)
 		}
 
-		m.
-		m.AddCustomFile(indexFile, "---\n" + string(yamlStr) + "---\n", 0777)
+		m.AddCustomFile(indexFile, "---\n"+string(yamlStr)+"---\n", 0777)
 	}
 
 	return m.Artifacts()
 }
 
 func Slate() *slateModule {
-	return &slateModule{ ModuleBase: &pgs.ModuleBase{} }
+	return &slateModule{ModuleBase: &pgs.ModuleBase{}}
 }
 
 func main() {
