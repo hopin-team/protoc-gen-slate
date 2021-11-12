@@ -26,13 +26,13 @@ const tpl = `
 ### Dependencies
 
 {{ range .Imports }}
-- [{{ .Name }}]({{ .InputPath }})
+- {{ packageName .Package.ProtoName }}
 {{ end }}
 
-| Parameter | Type | Comments |
-| --------- | ---- | ----------- |
+| Parameter | Type |  Label | Comments |
+| --------- | ---- | ----- | ----------- |
 {{- range .Fields -}}
-| {{ .Name }} | {{ .Type.ProtoType }} | {{ .SourceCodeInfo.TrailingComments }} |
+| {{ .Name }} | {{ messageType .Type.ProtoType }} | {{ messageLabel .Type.ProtoLabel }} | {{ .SourceCodeInfo.TrailingComments }} |
 {{ end }}
 {{ end }}
 {{ end }}
@@ -58,6 +58,46 @@ func (m *slateModule) InitContext(c pgs.BuildContext) {
 		"packageName": func(name pgs.Name) string {
 			parts := name.Split()
 			return strings.Join(parts[len(parts) - 2:], ".")
+		},
+		"messageType": func(protoType pgs.ProtoType) string {
+			switch protoType {
+			case pgs.DoubleT:
+				return "double"
+			case pgs.FloatT:
+				return "float"
+			case pgs.Int32T:
+				return "int (32bit)"
+			case pgs.Int64T:
+				return "int (64bit)"
+			case pgs.UInt32T:
+				return "unsigned int (32bit)"
+			case pgs.UInt64T:
+				return "unsigned int (64 bit)"
+			case pgs.BoolT:
+				return "boolean"
+			case pgs.BytesT:
+				return "bytes"
+			case pgs.EnumT:
+				return "enum"
+			case pgs.MessageT:
+				return "message"
+			case pgs.StringT:
+				return "string"
+			default:
+				return ""
+			}
+		},
+		"messageLabel": func(protoLabel pgs.ProtoLabel) string {
+			switch protoLabel {
+			case pgs.Optional:
+				return "optional"
+			case pgs.Required:
+				return "required"
+			case pgs.Repeated:
+				return "repeated"
+			default:
+				return ""
+			}
 		},
 	}
 
