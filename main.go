@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hopin-team/protoc-gen-slate/lang"
+	"github.com/iancoleman/strcase"
 	pgs "github.com/lyft/protoc-gen-star"
 	"gopkg.in/yaml.v2"
 	"log"
@@ -22,7 +23,7 @@ const tpl = `
 ~~~{{ .Language }}
 {{ .CodeExample }}
 ~~~
-{{ end }}
+{{- end }}
 
 {{ .SourceCodeInfo.LeadingComments }}
 
@@ -171,7 +172,7 @@ func (m *slateModule) InitContext(c pgs.BuildContext) {
 				fileName := strings.TrimSuffix(file.InputPath().BaseName(), ".proto")
 
 				packageLink := PackageLink{
-					Name: strings.Title(fileName),
+					Name: strcase.ToCamel(fileName),
 					Url: "#" + strings.Join(pkgParts[len(pkgParts)-3:], "-") + "-" + strings.ToLower(fileName),
 				}
 				packageLinks = append(packageLinks, packageLink)

@@ -3,6 +3,7 @@ module github.com/hopin-team/protoc-gen-slate
 go 1.17
 
 require (
+	github.com/iancoleman/strcase v0.2.0
 	github.com/lyft/protoc-gen-star v0.6.0
 	gopkg.in/yaml.v2 v2.4.0
 )
