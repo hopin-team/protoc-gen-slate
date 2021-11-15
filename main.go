@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hopin-team/protoc-gen-slate/lang"
 	pgs "github.com/lyft/protoc-gen-star"
 	"gopkg.in/yaml.v2"
 	"log"
@@ -17,26 +18,85 @@ const tpl = `
 {{ range .AllMessages }}
 ## {{ .Name }}
 
-~~~protobuf
-{{ source .File.InputPath }} 
+{{ range languageTabs . }}
+~~~{{ .Language }}
+{{ .CodeExample }}
 ~~~
+{{ end }}
 
 {{ .SourceCodeInfo.LeadingComments }}
 
-### Dependencies
+{{ if .Imports }}
+### Imports
 
-{{ range .Imports }}
-- {{ packageName .Package.ProtoName }}
+{{ range packageLinks .Imports }}
+- [{{ .Name }}]({{ .Url }})
 {{ end }}
+{{ end }}
+
+### Fields
 
 | Parameter | Type |  Label | Comments |
 | --------- | ---- | ----- | ----------- |
-{{- range .Fields -}}
+{{ range .NonOneOfFields -}}
 | {{ .Name }} | {{ messageType .Type.ProtoType }} | {{ messageLabel .Type.ProtoLabel }} | {{ .SourceCodeInfo.TrailingComments }} |
+{{ end -}}
+{{ range .OneOfs -}}
+| {{ .Name }} | {{ oneOfFieldNames .Fields }} | |  |
 {{ end }}
+
 {{ end }}
 {{ end }}
 `
+
+type LanguageTab struct {
+	Language    string
+	CodeExample string
+}
+
+type PackageLink struct {
+	Name string
+	Url string
+}
+
+var languageProcessors = map[string]func(pgs.Message) LanguageTab{
+	"ruby": func(msg pgs.Message) LanguageTab {
+		return LanguageTab{
+			Language:    "ruby",
+			CodeExample: lang.ToRuby(msg),
+		}
+
+	},
+	"javascript": func(msg pgs.Message) LanguageTab {
+		return LanguageTab{
+			Language:    "javascript",
+			CodeExample: "",
+		}
+	},
+	"java": func(msg pgs.Message) LanguageTab {
+		return LanguageTab{
+			Language:    "java",
+			CodeExample: "",
+		}
+	},
+	"python": func(msg pgs.Message) LanguageTab {
+		return LanguageTab{
+			Language:    "python",
+			CodeExample: "",
+		}
+	},
+	"protobuf": func(msg pgs.Message) LanguageTab {
+		res, err := os.ReadFile("schemas/" + msg.File().InputPath().String())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return LanguageTab{
+			Language:    "protobuf",
+			CodeExample: string(res),
+		}
+	},
+}
 
 type slateModule struct {
 	*pgs.ModuleBase
@@ -47,17 +107,9 @@ func (m *slateModule) InitContext(c pgs.BuildContext) {
 	m.ModuleBase.InitContext(c)
 
 	funcs := map[string]interface{}{
-		"source": func(fp pgs.FilePath) string {
-			// todo: don't hard-code schemas path. Only needed because of how buf works
-			res, err := os.ReadFile("schemas/" + fp.String())
-			if err != nil {
-				log.Fatal(err)
-			}
-			return string(res)
-		},
 		"packageName": func(name pgs.Name) string {
 			parts := name.Split()
-			return strings.Join(parts[len(parts) - 2:], ".")
+			return strings.Join(parts[len(parts)-2:], ".")
 		},
 		"messageType": func(protoType pgs.ProtoType) string {
 			switch protoType {
@@ -98,6 +150,43 @@ func (m *slateModule) InitContext(c pgs.BuildContext) {
 			default:
 				return ""
 			}
+		},
+		"oneOfFieldNames": func(fields []pgs.Field) string {
+			var fieldNames []string
+			for _, field := range fields {
+				fieldNames = append(fieldNames, field.Name().UpperCamelCase().String())
+			}
+
+			return strings.Join(fieldNames, "<br />")
+		},
+		"packageLinks": func(files []pgs.File) []PackageLink {
+			var packageLinks []PackageLink
+
+			for _, file := range files {
+				if strings.HasPrefix(file.Package().ProtoName().String(), "google") {
+					continue
+				}
+
+				pkgParts := file.Package().ProtoName().LowerSnakeCase().Split()
+				fileName := strings.TrimSuffix(file.InputPath().BaseName(), ".proto")
+
+				packageLink := PackageLink{
+					Name: strings.Title(fileName),
+					Url: "#" + strings.Join(pkgParts[len(pkgParts)-3:], "-") + "-" + strings.ToLower(fileName),
+				}
+				packageLinks = append(packageLinks, packageLink)
+			}
+
+			return packageLinks
+		},
+		"languageTabs": func(message pgs.Message) []LanguageTab {
+			languages := strings.Split(m.Parameters().Str("languages"), ";")
+			var langTabs []LanguageTab
+
+			for _, language := range languages {
+				langTabs = append(langTabs, languageProcessors[language](message))
+			}
+			return langTabs
 		},
 	}
 
